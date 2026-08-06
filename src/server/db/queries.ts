@@ -82,6 +82,7 @@ export const achievementSubjectComplete = {
   achievement: { include: achievementComplete },
   identifier: true,
   image: true,
+  profile: true,
   result: { include: { alignment: true } },
   source: { include: profileComplete },
 } satisfies Prisma.AchievementSubjectInclude;
@@ -90,6 +91,7 @@ export const protectedAchievementCredentialInclude = {
   credentialSubject: { include: achievementSubjectComplete },
   endorsement: { include: endorsementCredentialComplete },
   evidence: true,
+  image: true,
   issuer: true,
   proof: true,
   credentialSchema: true,

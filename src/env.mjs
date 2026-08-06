@@ -39,6 +39,27 @@ export const env = createEnv({
     STATUS_SERVICE_URL: z.string().optional(),
     STATUS_LIST_URL: z.string().url().optional(),
     STATUS_LIST_ID: z.string().optional(),
+
+    // "smtp" (nodemailer, e.g. local Mailpit or any generic relay) or "acs"
+    // (Azure Communication Services, via its own SDK — it doesn't speak SMTP
+    // through this app's integration). Required fields for whichever
+    // provider is selected are checked at mailer-init time, not here, since
+    // t3-env doesn't cleanly express "required only if X".
+    EMAIL_PROVIDER: z.enum(["smtp", "acs"]).default("smtp"),
+    // Accepts a bare address or "Display Name <address>" form.
+    EMAIL_FROM: z.string().min(1),
+
+    SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.coerce.number().default(587),
+    // z.coerce.boolean() would treat the string "false" as truthy — match explicitly instead.
+    SMTP_SECURE: z
+      .string()
+      .optional()
+      .transform((v) => v === "true"),
+    SMTP_USER: z.string().optional(),
+    SMTP_PASSWORD: z.string().optional(),
+
+    ACS_CONNECTION_STRING: z.string().optional(),
   },
 
   /**
@@ -65,6 +86,17 @@ export const env = createEnv({
     STATUS_SERVICE_URL: process.env.STATUS_SERVICE_URL,
     STATUS_LIST_URL: process.env.STATUS_LIST_URL,
     STATUS_LIST_ID: process.env.STATUS_LIST_ID,
+
+    EMAIL_PROVIDER: process.env.EMAIL_PROVIDER,
+    EMAIL_FROM: process.env.EMAIL_FROM,
+
+    SMTP_HOST: process.env.SMTP_HOST,
+    SMTP_PORT: process.env.SMTP_PORT,
+    SMTP_SECURE: process.env.SMTP_SECURE,
+    SMTP_USER: process.env.SMTP_USER,
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+
+    ACS_CONNECTION_STRING: process.env.ACS_CONNECTION_STRING,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially

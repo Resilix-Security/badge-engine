@@ -30,11 +30,11 @@ export default function RootLayout({
     <NotificationProvider>
       <html lang="en">
         <body
-          className={`bg-neutral-1 text-base text-neutral-5 ${museo.variable} font-sans font-light`}
+          className={`flex min-h-screen flex-col bg-neutral-1 text-base text-neutral-5 ${museo.variable} font-sans font-light`}
         >
           <DashboardHeader />
-            <Notifications />
-            {children}
+          <Notifications />
+          <div className="flex flex-1 flex-col">{children}</div>
           <DashboardFooter />
         </body>
       </html>
