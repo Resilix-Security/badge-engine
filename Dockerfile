@@ -1,22 +1,18 @@
 FROM node:20-bookworm-slim AS build
 
-ARG BADGE_ENGINE_REPOSITORY=https://github.com/digital-promise/badge-engine.git
-ARG BADGE_ENGINE_REF=bad61f522bc91e370e9b90963c225a86611e981c
-
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates git python3 make g++ \
+    && apt-get install -y --no-install-recommends python3 make g++ \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-RUN git init \
-    && git remote add origin "${BADGE_ENGINE_REPOSITORY}" \
-    && git fetch --depth 1 origin "${BADGE_ENGINE_REF}" \
-    && git checkout --detach FETCH_HEAD \
-    && rm -rf .git
+RUN npm install --global pnpm@8.8.0
 
-RUN npm install --global pnpm@8.8.0 \
-    && pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml ./
+COPY prisma ./prisma
+RUN pnpm install --frozen-lockfile
+
+COPY . .
 
 ENV SKIP_ENV_VALIDATION=1
 RUN pnpm style-dictionary \
