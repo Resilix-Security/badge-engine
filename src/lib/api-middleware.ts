@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server";
 import { env } from "~/env.mjs";
 
 const client = jwksClient({
-  jwksUri: `${env.AUTH0_ISSUER}/.well-known/jwks.json`,
+  jwksUri: `https://login.microsoftonline.com/${env.AZURE_AD_TENANT_ID}/discovery/v2.0/keys`,
 });
 
 const getKey = (header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) => {

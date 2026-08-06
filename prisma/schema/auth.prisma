@@ -9,6 +9,7 @@ model Account {
     access_token      String? @db.String
     id_token          String? @db.String
     expires_at        Int?
+    ext_expires_in    Int?
     token_type        String?
     scope             String?
     session_state     String?

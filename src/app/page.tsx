@@ -31,7 +31,7 @@ export default async function Welcome() {
         {session ? (
           <Logout className="btn mt-5">Sign Out</Logout>
         ) : (
-          <Login provider="auth0" className="btn mt-5">
+          <Login provider="azure-ad" className="btn mt-5">
             Sign In
           </Login>
         )}

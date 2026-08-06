@@ -14,7 +14,7 @@ export function MenuLogin() {
             <ul className="contents divide-x divide-gray-3">
                 <li className="pr-5 text-gray-5"><Icon name="warning" /><span className="underline">Help</span></li>
                 <li className="pl-5">
-                    {status === "authenticated" ? <Logout>{session.user?.name}</Logout> : <Login provider="auth0">Sign In</Login>}
+                    {status === "authenticated" ? <Logout>{session.user?.name}</Logout> : <Login provider="azure-ad">Sign In</Login>}
                 </li>
             </ul>
         </nav>

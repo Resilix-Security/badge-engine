@@ -5,7 +5,7 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
-import Auth0Provider from "next-auth/providers/auth0";
+import AzureADProvider from "next-auth/providers/azure-ad";
 import { env } from "~/env.mjs";
 import { prismaConnect } from "~/server/db/prismaConnect";
 import { PrismaAdapter } from "@auth/prisma-adapter";
@@ -94,10 +94,10 @@ export const authOptions: NextAuthOptions = {
     },
   },
   providers: [
-    Auth0Provider({
-      clientId: env.AUTH0_CLIENT_ID,
-      clientSecret: env.AUTH0_CLIENT_SECRET,
-      issuer: env.AUTH0_ISSUER,
+    AzureADProvider({
+      clientId: env.AZURE_AD_CLIENT_ID,
+      clientSecret: env.AZURE_AD_CLIENT_SECRET,
+      tenantId: env.AZURE_AD_TENANT_ID,
       allowDangerousEmailAccountLinking: env.NODE_ENV === "development"
     }),
     /**
