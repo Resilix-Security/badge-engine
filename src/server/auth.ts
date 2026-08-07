@@ -36,6 +36,45 @@ declare module "next-auth" {
 }
 
 /**
+ * Azure Cosmos DB's MongoDB API doesn't implement the `$$REMOVE` aggregation
+ * variable Prisma's Mongo connector relies on to omit unset optional fields,
+ * so a `create()` fails with "Use of undefined variable: REMOVE" whenever a
+ * nullable field is left absent rather than explicitly `null`. Azure AD
+ * doesn't return every optional User/Account field, so backfill them with
+ * `null` before they reach PrismaAdapter's createUser/linkAccount.
+ */
+function cosmosSafePrismaAdapter(): Adapter {
+  const adapter = PrismaAdapter(prismaConnect) as Adapter;
+  return {
+    ...adapter,
+    createUser: (user) => {
+      const u = user as typeof user & { role?: string | null };
+      return adapter.createUser!({
+        ...u,
+        role: u.role ?? null,
+        name: u.name ?? null,
+        image: u.image ?? null,
+        emailVerified: u.emailVerified ?? null,
+      } as typeof user);
+    },
+    linkAccount: (account) => {
+      const a = account as typeof account & { ext_expires_in?: number | null };
+      return adapter.linkAccount!({
+        ...a,
+        refresh_token: a.refresh_token ?? null,
+        access_token: a.access_token ?? null,
+        id_token: a.id_token ?? null,
+        expires_at: a.expires_at ?? null,
+        ext_expires_in: a.ext_expires_in ?? null,
+        token_type: a.token_type ?? null,
+        scope: a.scope ?? null,
+        session_state: a.session_state ?? null,
+      } as typeof account);
+    },
+  };
+}
+
+/**
  * Options for NextAuth.js used to configure adapters, providers, callbacks, etc.
  *
  * @see https://next-auth.js.org/configuration/options
@@ -80,7 +119,7 @@ export const authOptions: NextAuthOptions = {
     // },
   },
   // adapter: MongoDBAdapter(clientPromise) as Adapter, // Uncomment for use with mongo/mongoose
-  adapter: PrismaAdapter(prismaConnect) as Adapter,
+  adapter: cosmosSafePrismaAdapter(),
   debug: true,
   logger: {
     error(code, metadata) {
