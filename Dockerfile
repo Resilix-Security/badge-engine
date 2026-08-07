@@ -44,4 +44,4 @@ USER badgeengine
 
 EXPOSE 3000
 
-CMD ["sh", "-c", "pnpm db:push && pnpm start"]
+CMD ["sh", "-c", "pnpm db:push || true; pnpm start"]
