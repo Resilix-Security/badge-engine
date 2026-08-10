@@ -224,4 +224,18 @@ export const credentialRouter = createTRPCRouter({
         throwPrismaErrorAsTRPCError(e);
       }
     }),
+
+  // Permanently deletes a badge and, via schema cascade, every certificate
+  // ever awarded from it. There is no undo.
+  delete: protectedProcedure
+    .input(z.object({ docId: mongoDbObjectId }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await ctx.prismaConnect.achievement.delete({
+          where: { docId: input.docId },
+        });
+      } catch (e) {
+        throwPrismaErrorAsTRPCError(e);
+      }
+    }),
 });

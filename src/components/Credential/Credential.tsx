@@ -3,6 +3,7 @@ import type { Credential } from "~/trpc/shared";
 import CredentialDetails from "~/components/Credential/CredentialDetails";
 import { TabList, type TabListProps } from "~/components/Tabs/TabList";
 import AwardHistory from "~/components/Credential/AwardHistory";
+import DeleteCredentialButton from "~/components/Credential/DeleteCredentialButton";
 import { TRPCReactProvider } from "~/trpc/react";
 import Link from "next/link";
 import Icon from "../icon";
@@ -47,13 +48,24 @@ export default function Credential({
               {credential.name}
             </h1>
             {!preview && (
-              <Link
-                href={`${credential.docId}/award`}
-                className="btn"
-                prefetch={true}
-              >
-                Award <Icon name="badge" />
-              </Link>
+              <div className="flex items-center gap-4">
+                <Link
+                  href={`${credential.docId}/award`}
+                  className="btn"
+                  prefetch={true}
+                >
+                  Award <Icon name="badge" />
+                </Link>
+                {credential.creator?.docId && (
+                  <TRPCReactProvider>
+                    <DeleteCredentialButton
+                      docId={credential.docId}
+                      name={credential.name}
+                      issuerId={credential.creator.docId}
+                    />
+                  </TRPCReactProvider>
+                )}
+              </div>
             )}
           </div>
 

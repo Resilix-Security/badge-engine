@@ -10,6 +10,7 @@ import { TRPCError } from "@trpc/server";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import type { Prisma } from "@prisma/client";
 import { baseQuery } from "~/server/api/schemas/search-filter.schema";
+import { mongoDbObjectId } from "~/server/api/schemas/util.schema";
 
 export const issuerRouter = createTRPCRouter({
   index: publicProcedure.input(baseQuery).query(async ({ input, ctx }) => {
@@ -133,6 +134,36 @@ export const issuerRouter = createTRPCRouter({
         return issuer;
       } catch (_e) {
         return null;
+      }
+    }),
+
+  // Permanently deletes an issuing organization and, via schema cascade,
+  // every badge it created and every certificate ever awarded from those
+  // badges. There is no undo.
+  delete: protectedProcedure
+    .input(mongoDbObjectId)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        return await ctx.prismaConnect.profile.delete({
+          where: { docId: input },
+        });
+      } catch (e) {
+        if (e instanceof PrismaClientKnownRequestError) {
+          if (e.code === "P2025") {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "This organization no longer exists.",
+            });
+          }
+          if (e.code === "P2003") {
+            throw new TRPCError({
+              code: "CONFLICT",
+              message:
+                "This organization still has child organizations and can't be deleted until they're removed.",
+            });
+          }
+        }
+        throw e;
       }
     }),
 });
