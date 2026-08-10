@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { FormError } from "~/components/forms/errors";
 import { AwardFormSection } from "~/components/forms/award";
@@ -36,15 +37,9 @@ export default function Award({
   const router = useRouter();
   const { credentialId } = params;
   const { notify } = useNotifications();
-  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const awardMutation = api.award.create.useMutation({
-    onSuccess: () => {
-      notify({
-        type: "success",
-        message: "Credentials awarded successfully"  
-      });
-      router.push(`/issuers/${issuerId}/credentials/${credentialId}`);
-    },
     onError: (error) => {
       console.error("Award mutation error:", error);
       notify({
@@ -55,20 +50,35 @@ export default function Award({
   });
 
   const onSubmit = handleSubmit(async (data) => {
-    for (const recipient of data.recipients) {
-      const awardInput = CreateAwardSchema.omit({
-        credentialId: true,
-      }).parse({
-        identifier: recipient.email,
-        profile: {
-          name: recipient.name,
-        }
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+
+    try {
+      for (const recipient of data.recipients) {
+        const awardInput = CreateAwardSchema.omit({
+          credentialId: true,
+        }).parse({
+          identifier: recipient.email,
+          profile: {
+            name: recipient.name,
+          }
+        });
+
+        await awardMutation.mutateAsync({
+          ...awardInput,
+          credentialId,
+        });
+      }
+
+      notify({
+        type: "success",
+        message: "Credentials awarded successfully"
       });
-      
-      await awardMutation.mutateAsync({  
-        ...awardInput,
-        credentialId,
-      });
+      router.push(`/issuers/${issuerId}/credentials/${credentialId}`);
+    } catch {
+      // the mutation's onError above already surfaced the failure
+    } finally {
+      setIsSubmitting(false);
     }
   });
 
@@ -140,11 +150,12 @@ export default function Award({
         </div>
 
         <div className="flex justify-between">
-          <button 
-            type="submit" 
-            className="btn"
-          > 
-            Award Achievement
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className={`btn disabled:border-2 disabled:border-gray-4 disabled:bg-gray-3 ${isSubmitting ? "disabled" : ""}`}
+          >
+            {isSubmitting ? "Sending…" : "Award Achievement"}
           </button>
         </div>
       </form>

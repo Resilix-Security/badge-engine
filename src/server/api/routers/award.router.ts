@@ -61,6 +61,7 @@ export const awardRouter = createTRPCRouter({
           },
         },
         where: {
+          revoked: false,
           credentialSubject: {
             achievementId: input.credentialId,
             ...(input.query
@@ -100,6 +101,7 @@ export const awardRouter = createTRPCRouter({
               name: true,
               description: true,
               imageId: true,
+              validFor: { select: { neverExpires: true, expiresAt: true } },
             },
           });
 
@@ -137,6 +139,9 @@ export const awardRouter = createTRPCRouter({
             id: awardee.docId, // Temporarily assign URI until a database ID is available.
             awardedDate: new Date().toISOString(),
             validFrom: new Date().toISOString(),
+            ...(credential.validFor && !credential.validFor.neverExpires && credential.validFor.expiresAt
+              ? { validUntil: credential.validFor.expiresAt.toISOString() }
+              : {}),
             credentialSubject: { connect: { docId: awardee.docId } },
             issuer: { connect: { docId: credential.creatorId! } },
             ...(credential.imageId
@@ -242,5 +247,18 @@ export const awardRouter = createTRPCRouter({
       //   },
       //   select: publicAchievementCredentialStatusSelect,
       // });
+    }),
+
+  // Marks an award as revoked (e.g. sent in error). Revoked awards are
+  // excluded from `index` rather than deleted, so the credential itself
+  // (already emailed/signed) remains inspectable if needed.
+  revoke: protectedProcedure
+    .input(mongoDbObjectId)
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prismaConnect.achievementCredential.update({
+        where: { docId: input },
+        data: { revoked: true, revokedAt: new Date() },
+        select: { docId: true },
+      });
     }),
 });

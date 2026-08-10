@@ -5,6 +5,8 @@ import { api } from "~/trpc/react";
 
 import type { Credential, AwardHistory as IAwardHistory } from "~/trpc/shared";
 import Icon from "../icon";
+import { Dialog } from "../dialog";
+import { useNotifications } from "~/providers/notification-provider";
 
 export const AwardHistory = ({ credential }: { credential: Credential }) => {
   const [query, setQuery] = useState<string>("");
@@ -38,6 +40,7 @@ export const AwardHistory = ({ credential }: { credential: Credential }) => {
             <td className="px-3 py-4">Recipient Name</td>
             <td className="px-3 py-4">Status</td>
             <td className="px-3 py-4">Awarded on</td>
+            <td className="px-3 py-4"></td>
           </tr>
         </thead>
         <tbody>
@@ -55,6 +58,22 @@ const AwardListItem = ({ award }: { award: IAwardHistory[number] }) => {
     credentialSubject: { profile },
     awardedDate,
   } = award;
+
+  const utils = api.useUtils();
+  const { notify } = useNotifications();
+
+  const revokeMutation = api.award.revoke.useMutation({
+    onSuccess: () => {
+      notify({ type: "success", message: "Award revoked" });
+      void utils.award.index.invalidate();
+    },
+    onError: (error) => {
+      notify({
+        type: "error",
+        message: error.message || "Failed to revoke award",
+      });
+    },
+  });
 
   const name =
     profile?.name ??
@@ -89,6 +108,38 @@ const AwardListItem = ({ award }: { award: IAwardHistory[number] }) => {
             })}
           </p>
         )}
+      </td>
+
+      <td className="px-3 py-4">
+        <Dialog
+          trigger={
+            <button
+              type="button"
+              className="flex items-center gap-1 font-semibold text-gray-5 hover:text-red-5"
+            >
+              <Icon name="delete" />
+              <span className="underline">Revoke</span>
+            </button>
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <h3 className="heading">Revoke this award?</h3>
+            <p>
+              {name} will no longer be able to prove this credential, and it
+              will be removed from this list. This cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={revokeMutation.isLoading}
+                className="btn disabled:border-2 disabled:border-gray-4 disabled:bg-gray-3"
+                onClick={() => revokeMutation.mutate(award.docId)}
+              >
+                {revokeMutation.isLoading ? "Revoking…" : "Revoke Award"}
+              </button>
+            </div>
+          </div>
+        </Dialog>
       </td>
     </tr>
   );

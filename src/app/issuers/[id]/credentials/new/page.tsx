@@ -29,13 +29,21 @@ export type AchievementFormState = {
   }[];
 };
 
+function oneYearFromToday(): string {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() + 1);
+  return date.toISOString().slice(0, 10);
+}
+
 export default function Basics() {
   const { form } = useAchievementStore();
 
   const { register, control, handleSubmit, watch, trigger, formState: { errors }} = useForm<PartialCredentialForm>({
-    defaultValues: form ?? {},
+    defaultValues: { neverExpires: false, expiresAt: oneYearFromToday(), ...form },
     resolver: zodResolver(BasicsSectionSchema),
   });
+
+  const neverExpires = watch("neverExpires") ?? false;
     
   const { docId: issuerId } = useIssuerContext();
   const router = useRouter();
@@ -177,6 +185,48 @@ export default function Basics() {
           />
           <label htmlFor="isPublic">
             Display this achievement on issuing organization&#39;s public page
+          </label>
+        </div>
+
+        <div className="field" aria-required>
+          <label htmlFor="expiresAt" className={errors?.expiresAt ? "error-label" : "base-form-label"}>
+            Certificate Expiration
+          </label>
+          <input
+            type="date"
+            id="expiresAt"
+            disabled={neverExpires}
+            className={errors.expiresAt ? "error" : ""}
+            {...register("expiresAt", {
+              validate: (value) => {
+                if (neverExpires || value) return true;
+                return "An expiration date is required unless the certificate never expires";
+              },
+              onChange: () => {
+                if (hasError.expiresAt) void trigger("expiresAt");
+              },
+              onBlur: () => {
+                void trigger("expiresAt").then((isValid) => {
+                  if (!isValid) setHasError((prev) => ({ ...prev, expiresAt: true }));
+                });
+              },
+            })}
+          />
+          <FormError message={errors.expiresAt?.message} />
+        </div>
+
+        <div className="checkbox">
+          <input
+            type="checkbox"
+            {...register("neverExpires", {
+              onChange: () => void trigger("expiresAt"),
+            })}
+            id="neverExpires"
+            name="neverExpires"
+            defaultChecked={Boolean(form?.neverExpires)}
+          />
+          <label htmlFor="neverExpires">
+            Certificates from this achievement never expire
           </label>
         </div>
 

@@ -29,6 +29,11 @@ export const BasicsSectionSchema = z.object({
   achievementType: z.nativeEnum(AchievementType),
   image: z.instanceof(Blob),
   isPublic: z.preprocess((v) => Boolean(v), z.boolean()),
+  neverExpires: z.preprocess((v) => Boolean(v), z.boolean()),
+  // Kept as the raw "YYYY-MM-DD" string from the native date input rather
+  // than coerced to a Date — RHF's defaultValues need to match what the DOM
+  // element actually holds. Converted to a real Date server-side.
+  expiresAt: z.string().nullable(),
 });
 
 export const ExtrasSectionSchema = z.object({

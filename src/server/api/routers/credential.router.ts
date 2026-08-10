@@ -77,6 +77,8 @@ export const credentialRouter = createTRPCRouter({
           supportingResearchAndRationale,
           resources,
           resultDescription,
+          neverExpires,
+          expiresAt,
           ...data
         } = input;
 
@@ -139,6 +141,12 @@ export const credentialRouter = createTRPCRouter({
               criteria: createCriteriaQuery,
               resultDescription: createResultDescriptionQuery,
               extensions: {},
+              validFor: {
+                create: {
+                  neverExpires,
+                  expiresAt: neverExpires || !expiresAt ? null : new Date(expiresAt),
+                },
+              },
             },
             select: { docId: true, criteria: true },
           });

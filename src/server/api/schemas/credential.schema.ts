@@ -28,6 +28,8 @@ export const PreviewCredentialSchema = CredentialFormSchema.transform(
       resources,
       resultDescription,
       tag,
+      neverExpires: _neverExpires,
+      expiresAt: _expiresAt,
       ...props
     } = cred;
 
