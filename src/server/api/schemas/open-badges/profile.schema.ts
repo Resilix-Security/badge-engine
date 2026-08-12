@@ -89,11 +89,13 @@ const baseProfileSchema = z.object({
     .nullish()
     .transform((v) => v ?? undefined),
   image: imageSchema.nullish().transform((v) => v ?? undefined),
+  // Deliberately omitted from the public credential JSON-LD: the issuer's
+  // contact email is stored (see issuerProfile.schema.ts) but not published.
   email: z
     .string()
     .email()
     .nullish()
-    .transform((v) => v ?? undefined),
+    .transform(() => undefined),
   address: addressSchema.nullish().transform((v) => v ?? undefined),
   otherIdentifier: z
     .array(identifierEntrySchema)
