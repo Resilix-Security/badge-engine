@@ -3,7 +3,10 @@ import { nonEmptyString } from "shared/interfaces/functions";
 import { mongoDbObjectId } from "~/server/api/schemas/util.schema";
 
 export const CreateAchievementSubjectProfile = z.object({
-  name: z.string().nullish(),
+  // Required: with the recipient's email deliberately excluded from the
+  // public credentialSubject.identifier, name is the only identifier left
+  // to satisfy the OB v3 "id or identifier" requirement on AchievementSubject.
+  name: nonEmptyString(1),
   official: z.string().nullish(),
   familyName: z.string().nullish(),
   givenName: z.string().nullish(),

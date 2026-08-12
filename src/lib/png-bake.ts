@@ -2,14 +2,14 @@ import "server-only";
 
 /**
  * Open Badges "baking": embeds the credential JSON directly inside a PNG file
- * as an iTXt text chunk (keyword "openbadges"), so the image itself is a
- * self-contained, portable, independently verifiable credential.
+ * as an iTXt text chunk (keyword "openbadgecredential"), so the image itself
+ * is a self-contained, portable, independently verifiable credential.
  *
- * @link https://www.imsglobal.org/spec/ob/v3p0/baking (PNG baking, keyword "openbadges")
+ * @link https://www.imsglobal.org/spec/ob/v3p0/baking (PNG baking, keyword "openbadgecredential")
  */
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-const OPENBADGES_KEYWORD = "openbadges";
+const OPENBADGES_KEYWORD = "openbadgecredential";
 
 const CRC_TABLE = (() => {
   const table = new Uint32Array(256);
@@ -41,9 +41,9 @@ function buildChunk(type: string, data: Buffer): Buffer {
 }
 
 /**
- * Inserts an "openbadges" iTXt chunk (uncompressed, UTF-8) containing `json`
- * right after the PNG's IHDR chunk. Returns a new buffer — the input is not
- * mutated.
+ * Inserts an "openbadgecredential" iTXt chunk (uncompressed, UTF-8) containing
+ * `json` right after the PNG's IHDR chunk. Returns a new buffer — the input
+ * is not mutated.
  */
 export function bakeOpenBadgesPng(png: Buffer, json: string): Buffer {
   if (!png.subarray(0, 8).equals(PNG_SIGNATURE)) {

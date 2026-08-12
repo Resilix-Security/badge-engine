@@ -29,9 +29,9 @@ export type AchievementFormState = {
   }[];
 };
 
-function oneYearFromToday(): string {
+function threeYearsFromToday(): string {
   const date = new Date();
-  date.setFullYear(date.getFullYear() + 1);
+  date.setFullYear(date.getFullYear() + 3);
   return date.toISOString().slice(0, 10);
 }
 
@@ -39,7 +39,7 @@ export default function Basics() {
   const { form } = useAchievementStore();
 
   const { register, control, handleSubmit, watch, trigger, formState: { errors }} = useForm<PartialCredentialForm>({
-    defaultValues: { neverExpires: false, expiresAt: oneYearFromToday(), ...form },
+    defaultValues: { neverExpires: false, expiresAt: threeYearsFromToday(), ...form },
     resolver: zodResolver(BasicsSectionSchema),
   });
 

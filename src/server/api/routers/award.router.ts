@@ -105,18 +105,27 @@ export const awardRouter = createTRPCRouter({
             },
           });
 
-          const identityObject = await prisma.identityObject.create({
-            data: {
-              type: "IdentityObject",
-              identityHash: identifier,
-              identityType: IdentifierType.emailAddress,
-              hashed: false,
-            },
-            select: { id: true },
-          });
+          // The recipient's email is kept private (stored on the profile
+          // relation only, for notifications/search) and is deliberately not
+          // connected here — only the name is exposed via the public
+          // credentialSubject.identifier in the signed JSON-LD.
+          const identityObjectIds: string[] = [];
+
+          if (profile.name) {
+            const nameIdentityObject = await prisma.identityObject.create({
+              data: {
+                type: "IdentityObject",
+                identityHash: profile.name,
+                identityType: IdentifierType.name,
+                hashed: false,
+              },
+              select: { id: true },
+            });
+            identityObjectIds.push(nameIdentityObject.id);
+          }
 
           const awardSubject: Prisma.AchievementSubjectCreateInput = {
-            identifier: { connect: { id: identityObject.id } },
+            identifier: { connect: identityObjectIds.map((id) => ({ id })) },
             achievement: { connect: { docId: credential.docId } },
             type: ["AchievementSubject"],
             source: { connect: { docId: credential.creatorId! } },
