@@ -34,10 +34,10 @@ export function DeleteIssuerButton({
       trigger={
         <button
           type="button"
-          className="flex items-center gap-1 font-semibold text-gray-5 hover:text-red-5"
+          className="inline-flex items-center gap-1 whitespace-nowrap font-semibold text-gray-5 hover:text-red-5"
         >
           <Icon name="delete" />
-          <span className="underline">Delete Organization</span>
+          <span className="whitespace-nowrap underline">Delete Organization</span>
         </button>
       }
     >

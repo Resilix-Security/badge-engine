@@ -51,10 +51,10 @@ export default function Credential({
               <div className="flex items-center gap-4">
                 <Link
                   href={`${credential.docId}/award`}
-                  className="btn"
+                  className="btn inline-flex items-center gap-2 whitespace-nowrap"
                   prefetch={true}
                 >
-                  Award <Icon name="badge" />
+                  <Icon name="badge" /> Award
                 </Link>
                 {credential.creator?.docId && (
                   <TRPCReactProvider>

@@ -53,7 +53,7 @@ export default async function CredentialsList({
             <header className="flex items-center justify-between gap-4">
               <h1 className="text-xl font-bold">Achievements</h1>
               <Link
-                className="btn"
+                className="btn inline-flex items-center gap-2 whitespace-nowrap"
                 href={`/issuers/${params.id}/credentials/new`}
               >
                 <Icon name="plus" />
@@ -85,7 +85,10 @@ function NoBadges({ issuerId }: { issuerId: string }) {
           </p>
         </div>
         <div className="flex flex-col">
-          <Link className="btn" href={`/issuers/${issuerId}/credentials/new`}>
+          <Link
+            className="btn inline-flex items-center gap-2 whitespace-nowrap"
+            href={`/issuers/${issuerId}/credentials/new`}
+          >
             <Icon name="plus" />
             Create New
           </Link>
