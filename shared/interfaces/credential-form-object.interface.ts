@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { AchievementType, AssessmentPlacement} from "@prisma/client";
+import { AchievementType, AssessmentPlacement } from "@prisma/client";
 import { nonEmptyString } from "./functions";
 
 export const RubricCriterionLevelSchema = z.object({
@@ -20,8 +20,8 @@ export const ResultDescriptionSchemaRequired = ResultDescriptionSchema.extend({
 
 export const CriteriaSectionSchema = z.object({
   criteria: nonEmptyString().min(1, "Criteria is required"),
-  resultDescription: z.array(ResultDescriptionSchema).optional()
-})
+  resultDescription: z.array(ResultDescriptionSchema).optional(),
+});
 
 export const BasicsSectionSchema = z.object({
   name: z.string().min(1, "Achievement Name is required"),
@@ -29,18 +29,16 @@ export const BasicsSectionSchema = z.object({
   achievementType: z.nativeEnum(AchievementType),
   image: z.instanceof(Blob),
   isPublic: z.preprocess((v) => Boolean(v), z.boolean()),
-  neverExpires: z.preprocess((v) => Boolean(v), z.boolean()),
-  // Kept as the raw "YYYY-MM-DD" string from the native date input rather
-  // than coerced to a Date — RHF's defaultValues need to match what the DOM
-  // element actually holds. Converted to a real Date server-side.
-  expiresAt: z.string().nullable(),
 });
 
 export const ExtrasSectionSchema = z.object({
   tag: z.array(z.string()).optional(),
-  supportingResearchAndRationale: nonEmptyString().min(1, "Supporting Research and Rationale is required"),
+  supportingResearchAndRationale: nonEmptyString().min(
+    1,
+    "Supporting Research and Rationale is required",
+  ),
   resources: nonEmptyString().min(1, "Resources is required"),
-})
+});
 
 export const AwardRecipientSchema = z.object({
   name: nonEmptyString(),
@@ -48,13 +46,13 @@ export const AwardRecipientSchema = z.object({
 });
 
 export const AwardBasicsSectionSchema = z.object({
-  recipients: z.array(AwardRecipientSchema),
+  recipients: z
+    .array(AwardRecipientSchema)
+    .min(1, "Add at least one recipient"),
 });
 
 export const AwardExtrasSectionSchema = z.object({
-  // expirationType: z.nativeEnum(ExpirationType),
-  expirationDate: z.date(),
-  awardTime: z.date(),
+  expirationDate: z.string().nullable().optional(),
   narrative: nonEmptyString().optional(),
 });
 

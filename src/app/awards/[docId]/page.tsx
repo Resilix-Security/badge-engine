@@ -56,6 +56,13 @@ export default async function AwardedCredential({
           day: "numeric",
         })
       : null;
+    const expirationDateLabel = credential.validUntil
+      ? new Date(credential.validUntil).toLocaleDateString(undefined, {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : null;
 
     const verification = isSigned
       ? await verifyCredential(buildVerifiableCredentialJson(credential))
@@ -81,11 +88,13 @@ export default async function AwardedCredential({
         <div className="flex flex-col gap-2">
           <h1 className="text-xl font-bold">{credential.name}</h1>
           <p className="text-gray-4">
-            Issued by <span className="font-medium text-gray-5">{issuerName}</span>
+            Issued by{" "}
+            <span className="font-medium text-gray-5">{issuerName}</span>
             {recipientName && (
               <>
                 {" "}
-                to <span className="font-medium text-gray-5">{recipientName}</span>
+                to{" "}
+                <span className="font-medium text-gray-5">{recipientName}</span>
               </>
             )}
             {awardedDateLabel && <> on {awardedDateLabel}</>}
@@ -94,6 +103,12 @@ export default async function AwardedCredential({
 
         {credential.description && (
           <p className="max-w-md text-gray-5">{credential.description}</p>
+        )}
+
+        {expirationDateLabel && (
+          <p className="rounded-full bg-gray-1 px-4 py-2 text-sm text-gray-5">
+            Valid until {expirationDateLabel}
+          </p>
         )}
 
         {verification && (
@@ -189,8 +204,8 @@ export default async function AwardedCredential({
         {hasImage && (
           <p className="text-sm text-gray-4">
             Your badge image has the verifiable credential embedded in it
-            (&ldquo;baked in&rdquo;), so it stays independently verifiable
-            even if you share just the image file.
+            (&ldquo;baked in&rdquo;), so it stays independently verifiable even
+            if you share just the image file.
           </p>
         )}
       </main>

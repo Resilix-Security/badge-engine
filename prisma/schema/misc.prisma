@@ -18,7 +18,7 @@ model Image {
   AchievementCredential AchievementCredential[]
 }
 
-// `Validity` = the expiration policy for an Achievement, set when the badge is created. Either `neverExpires` is true, or `expiresAt` holds the date credentials issued from this achievement expire on.
+// Legacy achievement-level validity data retained for backwards compatibility.
 model Validity {
   id           String    @id @default(auto()) @map("_id") @db.ObjectId
   neverExpires Boolean   @default(false)

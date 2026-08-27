@@ -1,11 +1,7 @@
 import { z } from "zod";
 import { IdentifierType, type Prisma } from "@prisma/client";
 
-import {
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from "../trpc";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { CreateAwardSchema } from "../schemas/award.schema";
 import { createVerifiableAchievementCredentialSchema } from "../schemas/open-badges/credential.schema";
 import {
@@ -89,90 +85,91 @@ export const awardRouter = createTRPCRouter({
   create: protectedProcedure
     .input(CreateAwardSchema)
     .mutation(async ({ ctx, input }) => {
-      const { credentialId, identifier, profile } = input;
+      const { credentialId, identifier, profile, validUntil } = input;
 
-      const { docId } = await ctx.prismaConnect.$transaction(
-        async (prisma) => {
-          const credential = await prisma.achievement.findUniqueOrThrow({
-            where: { docId: credentialId },
-            select: {
-              docId: true,
-              creatorId: true,
-              name: true,
-              description: true,
-              imageId: true,
-              validFor: { select: { neverExpires: true, expiresAt: true } },
-            },
-          });
+      const { docId } = await ctx.prismaConnect.$transaction(async (prisma) => {
+        const credential = await prisma.achievement.findUniqueOrThrow({
+          where: { docId: credentialId },
+          select: {
+            docId: true,
+            creatorId: true,
+            name: true,
+            description: true,
+            imageId: true,
+          },
+        });
 
-          // The recipient's email is kept private (stored on the profile
-          // relation only, for notifications/search) and is deliberately not
-          // connected here — only the name is exposed via the public
-          // credentialSubject.identifier in the signed JSON-LD.
-          const identityObjectIds: string[] = [];
+        // The recipient's email is kept private (stored on the profile
+        // relation only, for notifications/search) and is deliberately not
+        // connected here — only the name is exposed via the public
+        // credentialSubject.identifier in the signed JSON-LD.
+        const identityObjectIds: string[] = [];
 
-          if (profile.name) {
-            const nameIdentityObject = await prisma.identityObject.create({
-              data: {
-                type: "IdentityObject",
-                identityHash: profile.name,
-                identityType: IdentifierType.name,
-                hashed: false,
-              },
-              select: { id: true },
-            });
-            identityObjectIds.push(nameIdentityObject.id);
-          }
-
-          const awardSubject: Prisma.AchievementSubjectCreateInput = {
-            identifier: { connect: identityObjectIds.map((id) => ({ id })) },
-            achievement: { connect: { docId: credential.docId } },
-            type: ["AchievementSubject"],
-            source: { connect: { docId: credential.creatorId! } },
-            profile: {
-              create: {
-                ...profile,
-                email: identifier,
-              },
-            },
-          };
-
-          const awardee = await prisma.achievementSubject.create({
-            data: awardSubject,
-          });
-
-          const awardedCredential: Prisma.AchievementCredentialCreateInput = {
-            name: credential.name,
-            type: ["AchievementCredential"],
-            description: credential.description,
-            id: awardee.docId, // Temporarily assign URI until a database ID is available.
-            awardedDate: new Date().toISOString(),
-            validFrom: new Date().toISOString(),
-            ...(credential.validFor && !credential.validFor.neverExpires && credential.validFor.expiresAt
-              ? { validUntil: credential.validFor.expiresAt.toISOString() }
-              : {}),
-            credentialSubject: { connect: { docId: awardee.docId } },
-            issuer: { connect: { docId: credential.creatorId! } },
-            ...(credential.imageId
-              ? { image: { connect: { docId: credential.imageId } } }
-              : {}),
-          };
-
-          const { docId } = await prisma.achievementCredential.create({
-            data: awardedCredential,
-            select: { docId: true },
-          });
-
-          await prisma.achievementCredential.update({
-            where: { docId },
+        if (profile.name) {
+          const nameIdentityObject = await prisma.identityObject.create({
             data: {
-              id: `${env.NEXTAUTH_URL.replace(/\/$/, "")}/awards/${docId}`,
+              type: "IdentityObject",
+              identityHash: profile.name,
+              identityType: IdentifierType.name,
+              hashed: false,
             },
+            select: { id: true },
           });
+          identityObjectIds.push(nameIdentityObject.id);
+        }
 
-          return { docId };
-        },
-      );
+        const awardSubject: Prisma.AchievementSubjectCreateInput = {
+          identifier: { connect: identityObjectIds.map((id) => ({ id })) },
+          achievement: { connect: { docId: credential.docId } },
+          type: ["AchievementSubject"],
+          source: { connect: { docId: credential.creatorId! } },
+          profile: {
+            create: {
+              ...profile,
+              email: identifier,
+            },
+          },
+        };
+
+        const awardee = await prisma.achievementSubject.create({
+          data: awardSubject,
+        });
+
+        const awardedCredential: Prisma.AchievementCredentialCreateInput = {
+          name: credential.name,
+          type: ["AchievementCredential"],
+          description: credential.description,
+          id: awardee.docId, // Temporarily assign URI until a database ID is available.
+          awardedDate: new Date().toISOString(),
+          validFrom: new Date().toISOString(),
+          ...(validUntil
+            ? {
+                validUntil: new Date(
+                  `${validUntil}T23:59:59.999Z`,
+                ).toISOString(),
+              }
+            : {}),
+          credentialSubject: { connect: { docId: awardee.docId } },
+          issuer: { connect: { docId: credential.creatorId! } },
+          ...(credential.imageId
+            ? { image: { connect: { docId: credential.imageId } } }
+            : {}),
+        };
+
+        const { docId } = await prisma.achievementCredential.create({
+          data: awardedCredential,
+          select: { docId: true },
+        });
+
+        await prisma.achievementCredential.update({
+          where: { docId },
+          data: {
+            id: `${env.NEXTAUTH_URL.replace(/\/$/, "")}/awards/${docId}`,
+          },
+        });
+
+        return { docId };
+      });
 
       // Signing (JSON-LD canonicalization + hashing) and sending mail are
       // both slow relative to Prisma's interactive transaction timeout, so

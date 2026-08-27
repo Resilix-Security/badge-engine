@@ -10,7 +10,9 @@ const resizeAndEncode = async (file: Blob) => {
   if (imageBuffer.byteLength === 0) return undefined;
 
   const imageBase64 = (
-    await sharp(imageBuffer).resize(168).toBuffer()
+    await sharp(imageBuffer)
+      .resize(1024, 1024, { fit: "inside", withoutEnlargement: true })
+      .toBuffer()
   ).toString("base64");
 
   return `data:${file.type};base64,${imageBase64}`;

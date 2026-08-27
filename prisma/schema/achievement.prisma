@@ -57,7 +57,7 @@ model Achievement {
 
   // `isPublic` = internal use only for display behavior on MCP platform.  This does not need to be an extension of the Achievement model and should be programatically removed when the credential is awarded to align with OBV3 standards.
   isPublic   Boolean   @default(false)
-  // `validFor` = the expiration policy for credentials issued from this achievement, set at badge-creation time.
+  // Legacy expiration policy. New credentials set validUntil when awarded.
   validityId String?   @unique @db.ObjectId
   validFor   Validity? @relation(fields: [validityId], references: [id])
 

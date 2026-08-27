@@ -1,7 +1,10 @@
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure, publicProcedure } from "../trpc";
 import { anyUrlPattern, uuidUri } from "~/util";
-import { CreateCredentialSchema } from "~/server/api/schemas/credential.schema";
+import {
+  CreateCredentialSchema,
+  UpdateCredentialSchema,
+} from "~/server/api/schemas/credential.schema";
 import { baseQuery } from "~/server/api/schemas/search-filter.schema";
 import { type Prisma, ResultType, QuestionType } from "@prisma/client";
 import { mongoDbObjectId } from "../schemas/util.schema";
@@ -77,8 +80,6 @@ export const credentialRouter = createTRPCRouter({
           supportingResearchAndRationale,
           resources,
           resultDescription,
-          neverExpires,
-          expiresAt,
           ...data
         } = input;
 
@@ -141,12 +142,6 @@ export const credentialRouter = createTRPCRouter({
               criteria: createCriteriaQuery,
               resultDescription: createResultDescriptionQuery,
               extensions: {},
-              validFor: {
-                create: {
-                  neverExpires,
-                  expiresAt: neverExpires || !expiresAt ? null : new Date(expiresAt),
-                },
-              },
             },
             select: { docId: true, criteria: true },
           });
@@ -220,6 +215,44 @@ export const credentialRouter = createTRPCRouter({
           });
 
         return credential;
+      } catch (e) {
+        throwPrismaErrorAsTRPCError(e);
+      }
+    }),
+
+  update: protectedProcedure
+    .input(UpdateCredentialSchema)
+    .mutation(async ({ ctx, input }) => {
+      const {
+        docId,
+        image,
+        criteria,
+        supportingResearchAndRationale,
+        resources,
+        ...data
+      } = input;
+      const criteriaTextContent = criteria.replace(/(<([^>]+)>)/gi, "");
+      const updatedCriteria = criteriaTextContent.match(anyUrlPattern)
+        ? { id: criteriaTextContent, narrative: null }
+        : { id: null, narrative: criteria };
+
+      try {
+        return await ctx.prismaConnect.$transaction(async (tx) => {
+          await tx.assessmentExtension.updateMany({
+            where: { achievementId: docId },
+            data: { supportingResearchAndRationale, resources },
+          });
+
+          return tx.achievement.update({
+            where: { docId },
+            data: {
+              ...data,
+              criteria: { set: updatedCriteria },
+              ...(image ? { image: { connect: { docId: image.docId } } } : {}),
+            },
+            include: achievementComplete,
+          });
+        });
       } catch (e) {
         throwPrismaErrorAsTRPCError(e);
       }

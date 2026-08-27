@@ -5,9 +5,15 @@ import {
   ResultDescriptionSchema,
 } from "shared/interfaces/credential-form-object.interface";
 import { imageSchema } from "~/server/api/schemas/image.schema";
-import { AssessmentPlacement, QuestionType, ResultType } from "@prisma/client";
+import {
+  AchievementType,
+  AssessmentPlacement,
+  QuestionType,
+  ResultType,
+} from "@prisma/client";
 import { anyUrlPattern } from "~/util";
 import type { Credential } from "~/trpc/shared";
+import { mongoDbObjectId } from "./util.schema";
 
 export const CreateResultDescriptionSchema = ResultDescriptionSchema.extend({
   uiPlacement: z.nativeEnum(AssessmentPlacement),
@@ -19,6 +25,19 @@ export const CreateCredentialSchema = CredentialFormSchema.extend({
   resultDescription: z.array(CreateResultDescriptionSchema).optional(),
 });
 
+export const UpdateCredentialSchema = z.object({
+  docId: mongoDbObjectId,
+  name: nonEmptyString(),
+  description: nonEmptyString(),
+  achievementType: z.nativeEnum(AchievementType),
+  isPublic: z.boolean(),
+  criteria: nonEmptyString(),
+  tag: z.array(z.string()),
+  supportingResearchAndRationale: nonEmptyString(),
+  resources: nonEmptyString(),
+  image: imageSchema.optional(),
+});
+
 export const PreviewCredentialSchema = CredentialFormSchema.transform(
   (cred): Credential => {
     const {
@@ -28,8 +47,6 @@ export const PreviewCredentialSchema = CredentialFormSchema.transform(
       resources,
       resultDescription,
       tag,
-      neverExpires: _neverExpires,
-      expiresAt: _expiresAt,
       ...props
     } = cred;
 

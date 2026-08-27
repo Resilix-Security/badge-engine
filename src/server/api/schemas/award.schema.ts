@@ -24,6 +24,7 @@ export const CreateAchievementSubject = z.object({
 
 export const CreateAchievementCredential = z.object({
   credentialId: mongoDbObjectId,
+  validUntil: z.string().date().nullable().optional(),
 });
 
 export const CreateAwardSchema = CreateAchievementCredential.merge(

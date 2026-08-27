@@ -13,7 +13,10 @@ import DropdownSelection, {
 } from "~/components/forms/select-dropdown";
 import { useAchievementStore } from "~/providers/achievement-form-provider";
 import { useCredentialFormUpdate } from "~/lib/react-hook-form";
-import { BasicsSectionSchema, type PartialCredentialForm } from "shared/interfaces/credential-form-object.interface";
+import {
+  BasicsSectionSchema,
+  type PartialCredentialForm,
+} from "shared/interfaces/credential-form-object.interface";
 import { FormError } from "~/components/forms/errors";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -29,27 +32,27 @@ export type AchievementFormState = {
   }[];
 };
 
-function threeYearsFromToday(): string {
-  const date = new Date();
-  date.setFullYear(date.getFullYear() + 3);
-  return date.toISOString().slice(0, 10);
-}
-
 export default function Basics() {
   const { form } = useAchievementStore();
 
-  const { register, control, handleSubmit, watch, trigger, formState: { errors }} = useForm<PartialCredentialForm>({
-    defaultValues: { neverExpires: false, expiresAt: threeYearsFromToday(), ...form },
+  const {
+    register,
+    control,
+    handleSubmit,
+    watch,
+    trigger,
+    formState: { errors },
+  } = useForm<PartialCredentialForm>({
+    defaultValues: form,
     resolver: zodResolver(BasicsSectionSchema),
   });
 
-  const neverExpires = watch("neverExpires") ?? false;
-    
   const { docId: issuerId } = useIssuerContext();
   const router = useRouter();
-  const dropdownOptions: AchievementTypeOption[] =
-    transformEnum(AchievementType).sort((a, b) => a.label.localeCompare(b.label));
-  
+  const dropdownOptions: AchievementTypeOption[] = transformEnum(
+    AchievementType,
+  ).sort((a, b) => a.label.localeCompare(b.label));
+
   const [hasError, setHasError] = useState<Record<string, boolean>>({});
 
   const formUpdates = useCredentialFormUpdate(watch);
@@ -70,20 +73,26 @@ export default function Basics() {
       <form className="dashboard-form" onSubmit={onSubmit} noValidate>
         <h2 className="heading">About the Achievement</h2>
         <div className="field" aria-required>
-          <label htmlFor="name" className={errors?.name ? "error-label": "base-form-label"}>Achievement Name</label>
+          <label
+            htmlFor="name"
+            className={errors?.name ? "error-label" : "base-form-label"}
+          >
+            Achievement Name
+          </label>
           <input
             type="text"
             id="name"
             className={errors.name ? "error" : ""}
             required
-            {...register("name", { 
+            {...register("name", {
               required: "Achievement Name is required",
               onChange: () => {
                 if (hasError.name) void trigger("name");
               },
               onBlur: () => {
                 void trigger("name").then((isValid) => {
-                  if (!isValid) setHasError((prev) => ({ ...prev, name: true }));
+                  if (!isValid)
+                    setHasError((prev) => ({ ...prev, name: true }));
                 });
               },
             })}
@@ -92,19 +101,25 @@ export default function Basics() {
         </div>
 
         <div className="field" aria-required>
-          <label htmlFor="description" className={errors?.description ? "error-label" : "base-form-label"}>Achievement Description</label>
+          <label
+            htmlFor="description"
+            className={errors?.description ? "error-label" : "base-form-label"}
+          >
+            Achievement Description
+          </label>
           <textarea
             id="description"
             className={errors.description ? "error" : ""}
             required
-            {...register("description", { 
+            {...register("description", {
               required: "Achievement Description is required",
               onChange: () => {
                 if (hasError.description) void trigger("description");
               },
               onBlur: () => {
                 void trigger("description").then((isValid) => {
-                  if (!isValid) setHasError((prev) => ({ ...prev, description: true }));
+                  if (!isValid)
+                    setHasError((prev) => ({ ...prev, description: true }));
                 });
               },
             })}
@@ -113,7 +128,14 @@ export default function Basics() {
         </div>
 
         <div className="field" aria-required>
-          <label htmlFor="achievementType" className={errors?.achievementType ? "error-label" : "base-form-label"}>Achievement Type</label>
+          <label
+            htmlFor="achievementType"
+            className={
+              errors?.achievementType ? "error-label" : "base-form-label"
+            }
+          >
+            Achievement Type
+          </label>
 
           <Controller
             name="achievementType"
@@ -125,14 +147,18 @@ export default function Basics() {
                   (o) => o.value === form?.achievementType,
                 )}
                 onChange={(option) => {
-                  onChange(option?.value)
+                  onChange(option?.value);
 
                   if (hasError.achievementType) void trigger("achievementType");
                 }}
                 onBlur={() => {
                   onBlur();
                   void trigger("achievementType").then((isValid) => {
-                    if (!isValid) setHasError((prev) => ({ ...prev, achievementType: true }));
+                    if (!isValid)
+                      setHasError((prev) => ({
+                        ...prev,
+                        achievementType: true,
+                      }));
                   });
                 }}
                 options={dropdownOptions}
@@ -148,11 +174,22 @@ export default function Basics() {
               ></DropdownSelection>
             )}
           />
-          <FormError message={errors.achievementType?.message ? "Achievement Type is required" : undefined} />
+          <FormError
+            message={
+              errors.achievementType?.message
+                ? "Achievement Type is required"
+                : undefined
+            }
+          />
         </div>
 
         <div className="field" aria-required>
-          <label htmlFor="image" className={errors?.image  ? "error-label" : "base-form-label"}>Achievement Image</label>
+          <label
+            htmlFor="image"
+            className={errors?.image ? "error-label" : "base-form-label"}
+          >
+            Achievement Image
+          </label>
           <Controller
             name="image"
             control={control}
@@ -172,7 +209,13 @@ export default function Basics() {
             )}
           />
 
-          <FormError message={errors.image?.message ? "Achievement Image is required" : undefined} />
+          <FormError
+            message={
+              errors.image?.message
+                ? "Achievement Image is required"
+                : undefined
+            }
+          />
         </div>
 
         <div className="checkbox">
@@ -185,48 +228,6 @@ export default function Basics() {
           />
           <label htmlFor="isPublic">
             Display this achievement on issuing organization&#39;s public page
-          </label>
-        </div>
-
-        <div className="field" aria-required>
-          <label htmlFor="expiresAt" className={errors?.expiresAt ? "error-label" : "base-form-label"}>
-            Certificate Expiration
-          </label>
-          <input
-            type="date"
-            id="expiresAt"
-            disabled={neverExpires}
-            className={errors.expiresAt ? "error" : ""}
-            {...register("expiresAt", {
-              validate: (value) => {
-                if (neverExpires || value) return true;
-                return "An expiration date is required unless the certificate never expires";
-              },
-              onChange: () => {
-                if (hasError.expiresAt) void trigger("expiresAt");
-              },
-              onBlur: () => {
-                void trigger("expiresAt").then((isValid) => {
-                  if (!isValid) setHasError((prev) => ({ ...prev, expiresAt: true }));
-                });
-              },
-            })}
-          />
-          <FormError message={errors.expiresAt?.message} />
-        </div>
-
-        <div className="checkbox">
-          <input
-            type="checkbox"
-            {...register("neverExpires", {
-              onChange: () => void trigger("expiresAt"),
-            })}
-            id="neverExpires"
-            name="neverExpires"
-            defaultChecked={Boolean(form?.neverExpires)}
-          />
-          <label htmlFor="neverExpires">
-            Certificates from this achievement never expire
           </label>
         </div>
 

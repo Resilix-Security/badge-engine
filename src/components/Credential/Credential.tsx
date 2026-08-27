@@ -50,6 +50,12 @@ export default function Credential({
             {!preview && (
               <div className="flex items-center gap-4">
                 <Link
+                  href={`${credential.docId}/edit`}
+                  className="rounded-full border-2 border-blue-3 px-4 py-2 font-semibold text-blue-4"
+                >
+                  Edit
+                </Link>
+                <Link
                   href={`${credential.docId}/award`}
                   className="btn inline-flex items-center gap-2 whitespace-nowrap"
                   prefetch={true}
