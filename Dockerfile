@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim AS build
+FROM node:24.22.1-bookworm-slim AS build
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends python3 make g++ \
@@ -19,7 +19,7 @@ RUN pnpm style-dictionary \
     && pnpm build
 
 
-FROM node:20-bookworm-slim AS runtime
+FROM node:24.22.1-bookworm-slim AS runtime
 
 ENV NODE_ENV=production \
     PORT=3000 \
