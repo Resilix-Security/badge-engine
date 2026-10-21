@@ -35,6 +35,10 @@ export const env = createEnv({
     AZURE_AD_CLIENT_ID: z.string(),
     AZURE_AD_CLIENT_SECRET: z.string(),
     AZURE_AD_TENANT_ID: z.string(),
+    // Extra accepted `aud` values for bearer tokens on the API, comma-separated
+    // (e.g. a custom App ID URI). AZURE_AD_CLIENT_ID and api://<client id> are
+    // always accepted.
+    API_AUDIENCE: z.string().optional(),
 
     STATUS_SERVICE_URL: z.string().optional(),
     STATUS_LIST_URL: z.string().url().optional(),
@@ -83,6 +87,7 @@ export const env = createEnv({
     AZURE_AD_CLIENT_ID: process.env.AZURE_AD_CLIENT_ID,
     AZURE_AD_CLIENT_SECRET: process.env.AZURE_AD_CLIENT_SECRET,
     AZURE_AD_TENANT_ID: process.env.AZURE_AD_TENANT_ID,
+    API_AUDIENCE: process.env.API_AUDIENCE,
     STATUS_SERVICE_URL: process.env.STATUS_SERVICE_URL,
     STATUS_LIST_URL: process.env.STATUS_LIST_URL,
     STATUS_LIST_ID: process.env.STATUS_LIST_ID,
